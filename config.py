@@ -2,7 +2,7 @@ import torch
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 AUDITOR_CHECKPOINT="D:/TiPAI-TSPO/ti_pai_inference/model_weights/model_3_weights-part_noise.pth"
-INPAINTER_MODEL_ID="stabilityai/stable-diffusion-2-inpainting"
+INPAINTER_MODEL_ID="runwayml/stable-diffusion-inpainting"
 DIFFUSION_MODEL_ID="runwayml/stable-diffusion-v1-5"
 
 #================================
