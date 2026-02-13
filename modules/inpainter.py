@@ -7,27 +7,21 @@ import config
 
 class SurgicalInpainter:
     def __init__(self, model_id, base_vae, base_scheduler, device):
-        """
-        model_id: HuggingFace ID or local path to inpainter weights
-        base_vae: Shared VAE from the main pipeline to save VRAM
-        base_scheduler: Shared scheduler to ensure consistent noise math
-        """
         self.device = device
         self.vae = base_vae
         self.scheduler = base_scheduler
-        
-        # Load the inpainting pipeline
+
         self.pipe = StableDiffusionInpaintPipeline.from_pretrained(
-            INPAINTER_MODEL_ID,
+            model_id,
             torch_dtype=dtype,
             variant="fp16"
         ).to(device)
-        
-        # Critical: Share the VAE to save memory and ensure latent consistency
+
+        # Share VAE for latent consistency
         self.pipe.vae = self.vae
 
     def generate_fix(self, prompt, image, mask_image):
-        """Generates the 'Select' version of the pixels."""
+        """Generate fixed pixels in RGB space."""
         return self.pipe(
             prompt=prompt,
             image=image,
@@ -35,28 +29,45 @@ class SurgicalInpainter:
         ).images[0]
 
     @torch.no_grad()
-    def run(self, inpainted_image, binary_mask, t, current_latents):
+    def run(self, prompt, current_pil, binary_mask, t, latents):
         """
-        Performs the Latent Blending and SDEdit (re-noising) step.
+        1. Generate safe patch
+        2. Convert to latent
+        3. Re-noise to timestep t (SDEdit)
+        4. Blend into current latents
         """
-        # 1. Convert Image to Latent space
+
+        # ---- 1. Generate Fixed Image ----
+        fixed_image = self.generate_fix(
+            prompt=prompt,
+            image=current_pil,
+            mask_image=binary_mask
+        )
+
+        # ---- 2. Convert to latent ----
         transform = transforms.Compose([
             transforms.ToTensor(),
-            transforms.Normalize([0.5], [0.5]) # Scale to [-1, 1]
+            transforms.Normalize([0.5], [0.5])
         ])
-        it = transform(inpainted_image).unsqueeze(0).to(self.device, dtype=torch.float16)
 
-        # 2. Encode to Fixed Latents
-        z_fixed = self.vae.encode(it).latent_dist.mode() * config.VAE_SCALE_FACTOR
-        
-        # 3. SDEdit: Add noise to match the current diffusion timestep 't'
+        img_tensor = transform(fixed_image).unsqueeze(0).to(
+            self.device, dtype=torch.float16
+        )
+
+        z_fixed = self.vae.encode(img_tensor).latent_dist.mode()
+        z_fixed = z_fixed * config.VAE_SCALE_FACTOR
+
+        # ---- 3. Re-noise to match timestep ----
         noise = torch.randn_like(z_fixed)
         z_fixed_noisy = self.scheduler.add_noise(z_fixed, noise, t)
 
-        # 4. Latent Blending: Stitch the 'fixed' noisy part into the 'original' noisy part
-        m = F.interpolate(binary_mask, size=config.LATENT_SIZE, mode='bilinear')
-        # Optional: Apply Gaussian Blur to 'm' here if not done in auditor
-        
-        updated_latents = (1 - m) * current_latents + (m * z_fixed_noisy)
-        
+        # ---- 4. Latent blending ----
+        m = F.interpolate(
+            binary_mask,
+            size=config.LATENT_SIZE,
+            mode="bilinear"
+        )
+
+        updated_latents = (1 - m) * latents + (m * z_fixed_noisy)
+
         return updated_latents
