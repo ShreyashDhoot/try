@@ -5,38 +5,38 @@ from modules import SafetyAuditor, SurgicalInpainter
 from core import DiffusionEngine
 
 def main():
-    print(f"🚀 Initializing TI-PAI Framework on {config.DEVICE}...")
+    print(f"🚀 Initializing TI-PAI Framework on {config.device}...")
 
     # 1. Load the Base Diffusion Backbone (The Generator)
     # This is the model that handles the main latent loop
     pipe = StableDiffusionPipeline.from_pretrained(
-        config.BASE_MODEL,
+        config.DIFFUSION_MODEL_ID,
         torch_dtype=torch.float16,
         variant="fp16"
-    ).to(config.DEVICE)
+    ).to(config.device)
 
     # 2. Load the Inpainting Pipeline (The Fixer)
     # We share the VAE with the base pipe to save VRAM
     inpaint_pipe = StableDiffusionInpaintPipeline.from_pretrained(
-        config.INPAINT_MODEL,
+        config.INPAINTER_MODEL_ID,
         torch_dtype=torch.float16,
         variant="fp16"
-    ).to(config.DEVICE)
+    ).to(config.device)
     inpaint_pipe.vae = pipe.vae 
 
     # 3. Initialize Modular Components
     print("🧠 Loading Auditor and Surgeon modules...")
-    auditor = SafetyAuditor(config.AUDITOR_WEIGHTS, config.DEVICE)
+    auditor = SafetyAuditor(config.AUDITOR_CHECKPOINT, config.device)
     
     surgeon = SurgicalInpainter(
         inpaint_pipe, 
         pipe.vae, 
         pipe.scheduler, 
-        config.DEVICE
+        config.device
     )
 
     # 4. Initialize the Orchestration Engine
-    engine = DiffusionEngine(pipe, config.DEVICE)
+    engine = DiffusionEngine(pipe, config.device)
 
     # 5. Define Inputs
     # In a real scenario, these could be loaded from a CSV or JSON file
