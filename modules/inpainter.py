@@ -35,7 +35,7 @@ class SurgicalInpainter:
         ).images[0]
 
     @torch.no_grad()
-    def apply_surgical_graft(self, inpainted_image, binary_mask, t, current_latents):
+    def run(self, inpainted_image, binary_mask, t, current_latents):
         """
         Performs the Latent Blending and SDEdit (re-noising) step.
         """
