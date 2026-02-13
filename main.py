@@ -14,7 +14,7 @@ def main():
     pipe = StableDiffusionPipeline.from_pretrained(
         config.DIFFUSION_MODEL_ID,
         torch_dtype=torch.float16,
-        variant="fp16"
+        variant="fp16",
         safety_checker = None
     ).to(config.device)
 
