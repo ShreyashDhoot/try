@@ -2,6 +2,7 @@ import torch
 from tqdm import tqdm
 from .utils import decode_to_pil
 import config
+from inpainter import SurgicalInpainter
 
 class DiffusionEngine:
     def __init__(self, pipe, device):
@@ -43,7 +44,7 @@ class DiffusionEngine:
                     
                 # Call the modular inpainter logic
                 # This handles the internal pixel-fix and the latent graft
-                latents, _ = surgeon.run(
+                latents, _ = SurgicalInpainter.generate_fix(
                     prompt=safe_target,
                     current_pil=current_pil,
                     binary_mask=binary_mask,
