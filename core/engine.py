@@ -34,8 +34,9 @@ class DiffusionEngine:
             latents = self.pipe.scheduler.step(noise_pred, t, latents).prev_sample 
 
             current_pil = decode_to_pil(self.pipe, latents)
-            
+
             score, binary_mask = auditor.audit(current_pil)
+            print(f'score=====================> {score}')
 
             if score > config.GLOBAL_THRESHOLD:
                 print(f"| Step {i} | Adversary Detected (Score: {score:.2f}) | Deploying Surgeon...")
