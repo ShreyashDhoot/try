@@ -12,8 +12,8 @@ dtype=torch.float16
 #=================================
 #Auditor Thresholds 
 #=================================
-GLOBAL_THRESHOLD = 0.5
-MASK_THRESHOLD = 0.5
+GLOBAL_THRESHOLD = 0.2
+MASK_THRESHOLD = 0.2
 INPUT_SIZE = (224,224)
 OUTPUT_SIZE = (512,512)
 
@@ -21,7 +21,7 @@ OUTPUT_SIZE = (512,512)
 # diffusion parameters 
 #=================================
 NUM_STEPS = 50
-GUIDANCE_SCALE = 0.7
+GUIDANCE_SCALE = 7
 LATENT_SIZE = (64,64)
 
 #=================================
