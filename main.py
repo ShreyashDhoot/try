@@ -3,12 +3,14 @@ from diffusers import StableDiffusionPipeline, StableDiffusionInpaintPipeline
 import config
 from modules import SafetyAuditor, SurgicalInpainter
 from core import DiffusionEngine
+import warnings
 
 def main():
     print(f"🚀 Initializing TI-PAI Framework on {config.device}...")
 
     # 1. Load the Base Diffusion Backbone (The Generator)
     # This is the model that handles the main latent loop
+    warnings.filterwarnings('ignore')
     pipe = StableDiffusionPipeline.from_pretrained(
         config.DIFFUSION_MODEL_ID,
         torch_dtype=torch.float16,

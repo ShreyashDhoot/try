@@ -50,6 +50,7 @@ class SafetyAuditor:
         image: Can be a path (str) or a PIL Image
         returns: score (float), binary_mask (torch.Tensor)
         """
+        print("auditor was accessed")
         if threshold is None:
             threshold = config.MASK_THRESHOLD
 

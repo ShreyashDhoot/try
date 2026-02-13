@@ -32,7 +32,9 @@ class DiffusionEngine:
             noise_pred_uncond, noise_pred_text = noise_pred.chunk(2)
             noise_pred = noise_pred_uncond + config.GUIDANCE_SCALE * (noise_pred_text - noise_pred_uncond)
             latents = self.pipe.scheduler.step(noise_pred, t, latents).prev_sample 
+
             current_pil = decode_to_pil(self.pipe, latents)
+            
             score, binary_mask = auditor.audit(current_pil)
 
             if score > config.GLOBAL_THRESHOLD:
