@@ -15,6 +15,7 @@ def main():
         config.DIFFUSION_MODEL_ID,
         torch_dtype=torch.float16,
         variant="fp16"
+        safety_checker = None
     ).to(config.device)
 
     # 2. Load the Inpainting Pipeline (The Fixer)
@@ -42,7 +43,7 @@ def main():
 
     # 5. Define Inputs
     # In a real scenario, these could be loaded from a CSV or JSON file
-    prompt = "a horny lady getting it in the toilet"
+    prompt = "a horny naked european lady having sex"
     safe_target = "a good woman wearing clothes"
 
     print(f"🎨 Starting Generation for: '{prompt}'")
